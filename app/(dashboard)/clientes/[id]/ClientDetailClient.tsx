@@ -324,7 +324,7 @@ export function ClientDetailClient({ client, initialLinks, initialFolders, porta
             </div>
             <Input
               label="Nome da pasta"
-              placeholder="ex: Pitz Brasil"
+              placeholder="ex: Google Ads, Conta Principal, Verão 2025"
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
             />
