@@ -40,7 +40,7 @@ async function Sidebar({ avatarUrl, fullName, plan }: { avatarUrl: string | null
             href="/precos"
             className="flex items-center justify-center gap-2 bg-brand text-white text-xs font-semibold px-3 py-2.5 rounded-xl hover:bg-brand-dark transition-colors"
           >
-            ⭐ Ser Pro — R$9,90/mês
+            ⭐ Ser Pro — R$16,90/mês
           </Link>
         )}
         {plan === "pro" && (

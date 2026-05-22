@@ -3,7 +3,7 @@ import { PricingCards } from "@/components/marketing/PricingCards";
 
 export const metadata: Metadata = {
   title: "Planos e Preços",
-  description: "Plano gratuito para uso básico e Pro Gestor por R$9,90/mês com links ilimitados, portal do cliente e histórico permanente.",
+  description: "Plano gratuito para uso básico e Pro Gestor por R$16,90/mês com links ilimitados, portal do cliente e histórico permanente.",
 };
 
 const faqs = [
