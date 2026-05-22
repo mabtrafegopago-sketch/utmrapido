@@ -28,6 +28,7 @@ interface UTMGeneratorProps {
   selectedFolderId?: string;
   onSaved?: () => void;
   showUpgradeModal?: () => void;
+  showLoginPrompt?: () => void;
 }
 
 const CUSTOM_VALUE = "__custom__";
@@ -42,6 +43,7 @@ export function UTMGenerator({
   selectedFolderId,
   onSaved,
   showUpgradeModal,
+  showLoginPrompt,
 }: UTMGeneratorProps) {
   const [baseUrl, setBaseUrl] = useState("");
   const [source, setSource] = useState("");
@@ -139,7 +141,9 @@ export function UTMGenerator({
       toast.success("Link salvo!");
       onSaved?.();
     } catch {
-      toast.error("Erro ao salvar link.");
+      showLoginPrompt
+        ? showLoginPrompt()
+        : toast.error("Erro ao salvar link.");
     } finally {
       setSaving(false);
     }

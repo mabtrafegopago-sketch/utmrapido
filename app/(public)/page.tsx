@@ -19,7 +19,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
           <div className="text-4xl mb-3">🚀</div>
           <h2 className="text-xl font-bold text-text mb-2">Você usou seus 5 links gratuitos</h2>
           <p className="text-muted text-sm leading-relaxed">
-            Seja Pro por R$9,90/mês e salve links ilimitados, organize por cliente e compartilhe com quem quiser.
+            Seja Pro por R$16,90/mês e salve links ilimitados, organize por cliente e compartilhe com quem quiser.
           </p>
         </div>
 
@@ -28,7 +28,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
             href="/precos"
             className="w-full bg-brand text-white text-center font-semibold py-3 px-6 rounded-xl hover:bg-brand-dark transition-colors text-sm"
           >
-            Quero ser Pro — R$9,90/mês
+            Quero ser Pro — R$16,90/mês
           </a>
           <a
             href="/login"
@@ -48,8 +48,43 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+function LoginPromptModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 flex flex-col gap-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center">
+          <div className="text-4xl mb-3">🔐</div>
+          <h2 className="text-xl font-bold text-text mb-2">Salve seus links gratuitamente</h2>
+          <p className="text-muted text-sm leading-relaxed">
+            Faça login grátis para salvar seus links e acessar o histórico.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <a
+            href="/login"
+            className="w-full bg-brand text-white text-center font-semibold py-3 px-6 rounded-xl hover:bg-brand-dark transition-colors text-sm"
+          >
+            Entrar com Google
+          </a>
+          <button
+            onClick={onClose}
+            className="text-muted text-sm hover:text-text transition-colors"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   return (
     <>
@@ -61,7 +96,10 @@ export default function HomePage() {
         <section id="gerador" className="max-w-3xl mx-auto px-4 pb-12">
           <div className="bg-white rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
             <h2 className="text-lg font-bold text-text mb-6">Gerar link UTM</h2>
-            <UTMGenerator showUpgradeModal={() => setShowModal(true)} />
+            <UTMGenerator
+              showUpgradeModal={() => setShowModal(true)}
+              showLoginPrompt={() => setShowLoginModal(true)}
+            />
           </div>
         </section>
 
@@ -102,6 +140,7 @@ export default function HomePage() {
       </div>
 
       {showModal && <UpgradeModal onClose={() => setShowModal(false)} />}
+      {showLoginModal && <LoginPromptModal onClose={() => setShowLoginModal(false)} />}
       <ToastContainer />
     </>
   );

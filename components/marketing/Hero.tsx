@@ -19,7 +19,7 @@ export function Hero() {
       <div className="flex flex-wrap gap-3 justify-center">
         <Link href="/precos">
           <Button size="lg" variant="primary">
-            Ser Pro — R$9,90/mês
+            Ser Pro — R$16,90/mês
           </Button>
         </Link>
         <Link href="/login">
