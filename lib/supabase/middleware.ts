@@ -32,6 +32,18 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Intercept OAuth code at root — happens when Supabase redirect URL is set to site root
+  if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    const url = request.nextUrl.clone();
+    const code = url.searchParams.get("code")!;
+    const next = url.searchParams.get("next") ?? "/dashboard";
+    url.pathname = "/api/auth/callback";
+    url.search = "";
+    url.searchParams.set("code", code);
+    url.searchParams.set("next", next);
+    return NextResponse.redirect(url);
+  }
+
   const protectedPaths = ["/dashboard", "/clientes", "/historico"];
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
 
