@@ -16,6 +16,7 @@ async function Header() {
 
         <nav className="hidden sm:flex items-center gap-6 text-sm text-muted">
           <Link href="/o-que-e-utm" className="hover:text-text transition-colors">O que é UTM?</Link>
+          <Link href="/blog" className="hover:text-text transition-colors">Blog</Link>
           <Link href="/precos" className="hover:text-text transition-colors">Preços</Link>
         </nav>
 
@@ -39,7 +40,7 @@ async function Header() {
                 href="/precos"
                 className="bg-brand text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors whitespace-nowrap"
               >
-                Ser Pro — R$9,90/mês
+                Ser Pro — R$16,90/mês
               </Link>
             </>
           )}
@@ -76,6 +77,7 @@ function Footer() {
             <p className="text-sm font-semibold text-text mb-3">Aprender</p>
             <ul className="flex flex-col gap-2 text-sm text-muted">
               <li><Link href="/o-que-e-utm" className="hover:text-brand transition-colors">O que é UTM?</Link></li>
+              <li><Link href="/blog" className="hover:text-brand transition-colors">Blog</Link></li>
               <li><Link href="/utm-para-meta-ads" className="hover:text-brand transition-colors">UTM para Meta Ads</Link></li>
               <li><Link href="/utm-para-google-ads" className="hover:text-brand transition-colors">UTM para Google Ads</Link></li>
             </ul>

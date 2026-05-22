@@ -9,6 +9,13 @@ const FREE_FEATURES = [
   "Acesso aos artigos e guias",
 ];
 
+const PLUS_FEATURES = [
+  "Tudo do plano gratuito",
+  "Links salvos ilimitados",
+  "Até 3 clientes",
+  "Histórico permanente",
+];
+
 const PRO_FEATURES = [
   "Tudo do plano gratuito",
   "Links salvos ilimitados",
@@ -22,16 +29,16 @@ const PRO_FEATURES = [
 export function PricingCards() {
   return (
     <section className="py-16 px-4 bg-white">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-2xl font-bold text-text mb-2">Planos simples e diretos</h2>
           <p className="text-muted">Comece grátis. Seja Pro quando precisar.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {/* Free */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Gratuito */}
           <div className="border border-border rounded-2xl p-6 flex flex-col">
-            <div className="mb-4">
+            <div className="mb-5">
               <p className="text-sm font-semibold text-muted uppercase tracking-wide mb-1">Gratuito</p>
               <p className="text-3xl font-bold text-text">R$0</p>
               <p className="text-muted text-sm mt-1">Para sempre</p>
@@ -39,7 +46,7 @@ export function PricingCards() {
             <ul className="flex flex-col gap-2.5 mb-6 flex-1">
               {FREE_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-muted">
-                  <span className="text-success mt-0.5">✓</span>
+                  <span className="text-success mt-0.5 shrink-0">✓</span>
                   {f}
                 </li>
               ))}
@@ -51,17 +58,42 @@ export function PricingCards() {
             </Link>
           </div>
 
-          {/* Pro */}
-          <div className="border-2 border-brand rounded-2xl p-6 flex flex-col relative overflow-hidden">
+          {/* Gestor Plus — decoy */}
+          <div className="border border-border rounded-2xl p-6 flex flex-col opacity-90">
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-muted uppercase tracking-wide mb-1">Gestor Plus</p>
+              <p className="text-3xl font-bold text-text">
+                R$24,90
+                <span className="text-base font-normal text-muted">/mês</span>
+              </p>
+              <p className="text-muted text-sm mt-1">Para quem está começando</p>
+            </div>
+            <ul className="flex flex-col gap-2.5 mb-6 flex-1">
+              {PLUS_FEATURES.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm text-muted">
+                  <span className="text-success mt-0.5 shrink-0">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/login">
+              <Button variant="secondary" size="lg" className="w-full">
+                Assinar Plus
+              </Button>
+            </Link>
+          </div>
+
+          {/* Pro Gestor — destaque */}
+          <div className="border-2 border-brand rounded-2xl p-6 flex flex-col relative overflow-hidden shadow-lg">
             <div className="absolute top-4 right-4">
               <span className="bg-brand text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                Popular
+                Mais Popular
               </span>
             </div>
-            <div className="mb-4">
+            <div className="mb-5">
               <p className="text-sm font-semibold text-brand uppercase tracking-wide mb-1">Pro Gestor</p>
               <p className="text-3xl font-bold text-text">
-                R$9,90
+                R$16,90
                 <span className="text-base font-normal text-muted">/mês</span>
               </p>
               <p className="text-muted text-sm mt-1">Tudo que um gestor profissional precisa</p>
@@ -69,14 +101,14 @@ export function PricingCards() {
             <ul className="flex flex-col gap-2.5 mb-6 flex-1">
               {PRO_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm text-text">
-                  <span className="text-brand mt-0.5 font-bold">✓</span>
+                  <span className="text-brand mt-0.5 font-bold shrink-0">✓</span>
                   {f}
                 </li>
               ))}
             </ul>
             <Link href="/login">
               <Button size="lg" className="w-full">
-                Quero ser Pro
+                Quero ser Pro →
               </Button>
             </Link>
           </div>
