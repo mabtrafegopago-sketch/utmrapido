@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { LinkHistory } from "@/components/dashboard/LinkHistory";
 import { toast } from "@/components/ui/Toast";
+import { parseUTMUrl } from "@/lib/utils/utm";
 
 interface Link {
   id: string;
@@ -32,6 +33,14 @@ export default function HistoricoPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [clientFilter, setClientFilter] = useState("");
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
+  const [importUrl, setImportUrl] = useState("");
+  const [importName, setImportName] = useState("");
+  const [importClientId, setImportClientId] = useState("");
+  const [importParsed, setImportParsed] = useState<ReturnType<typeof parseUTMUrl> | null>(null);
+  const [importSaving, setImportSaving] = useState(false);
 
   const fetchLinks = useCallback(async () => {
     setLoading(true);
@@ -66,13 +75,9 @@ export default function HistoricoPage() {
     if (links.length === 0) return;
     const headers = ["Nome", "URL completa", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "Criado em"];
     const rows = links.map((l) => [
-      l.name,
-      l.full_url,
-      l.utm_source ?? "",
-      l.utm_medium ?? "",
-      l.utm_campaign ?? "",
-      l.utm_content ?? "",
-      l.utm_term ?? "",
+      l.name, l.full_url,
+      l.utm_source ?? "", l.utm_medium ?? "", l.utm_campaign ?? "",
+      l.utm_content ?? "", l.utm_term ?? "",
       new Date(l.created_at).toLocaleDateString("pt-BR"),
     ]);
     const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
@@ -85,12 +90,48 @@ export default function HistoricoPage() {
     URL.revokeObjectURL(url);
   }
 
+  function handleIdentify() {
+    const parsed = parseUTMUrl(importUrl.trim());
+    setImportParsed(parsed);
+    if (!importName && parsed.campaign) setImportName(parsed.campaign);
+  }
+
+  async function handleImportSave() {
+    if (!importParsed || !importName.trim()) return;
+    setImportSaving(true);
+    try {
+      const res = await fetch("/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: importName.trim(),
+          base_url: importParsed.baseUrl ?? importUrl.trim(),
+          utm_source: importParsed.source || null,
+          utm_medium: importParsed.medium || null,
+          utm_campaign: importParsed.campaign || null,
+          utm_content: importParsed.content || null,
+          utm_term: importParsed.term || null,
+          full_url: importUrl.trim(),
+          client_id: importClientId || null,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Link importado!");
+      setShowImport(false);
+      setImportUrl(""); setImportName(""); setImportClientId(""); setImportParsed(null);
+      fetchLinks();
+    } catch {
+      toast.error("Erro ao importar link.");
+    } finally {
+      setImportSaving(false);
+    }
+  }
+
   const filtered = search
-    ? links.filter(
-        (l) =>
-          l.name.toLowerCase().includes(search.toLowerCase()) ||
-          l.utm_campaign?.toLowerCase().includes(search.toLowerCase()) ||
-          l.utm_source?.toLowerCase().includes(search.toLowerCase())
+    ? links.filter((l) =>
+        l.name.toLowerCase().includes(search.toLowerCase()) ||
+        l.utm_campaign?.toLowerCase().includes(search.toLowerCase()) ||
+        l.utm_source?.toLowerCase().includes(search.toLowerCase())
       )
     : links;
 
@@ -103,9 +144,14 @@ export default function HistoricoPage() {
           <h1 className="text-2xl font-bold text-text mb-1">Histórico</h1>
           <p className="text-muted text-sm">{total} link{total !== 1 ? "s" : ""} salvos</p>
         </div>
-        <Button variant="secondary" onClick={exportCSV} disabled={links.length === 0}>
-          ↓ Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => setShowImport(true)}>
+            ↓ Importar link
+          </Button>
+          <Button variant="secondary" onClick={exportCSV} disabled={links.length === 0}>
+            ↓ Exportar CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -148,25 +194,100 @@ export default function HistoricoPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-          >
+          <Button variant="ghost" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
             ← Anterior
           </Button>
-          <span className="text-sm text-muted">
-            {page} / {totalPages}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={page === totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
+          <span className="text-sm text-muted">{page} / {totalPages}</span>
+          <Button variant="ghost" size="sm" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
             Próxima →
           </Button>
+        </div>
+      )}
+
+      {/* ── MODAL: Importar link UTM ── */}
+      {showImport && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto" onClick={() => setShowImport(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-8 p-6 flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-text">Importar link UTM</h2>
+                <p className="text-xs text-muted mt-0.5">Cole uma URL com parâmetros UTM para importar</p>
+              </div>
+              <button onClick={() => setShowImport(false)} className="text-muted hover:text-text text-xl leading-none">×</button>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-text block mb-1.5">URL completa com UTM</label>
+              <textarea
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm font-mono text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+                rows={3}
+                placeholder="https://seusite.com.br?utm_source=meta&utm_medium=cpc&utm_campaign=junho"
+                value={importUrl}
+                onChange={(e) => { setImportUrl(e.target.value); setImportParsed(null); }}
+              />
+            </div>
+
+            {!importParsed && (
+              <Button onClick={handleIdentify} disabled={!importUrl.trim()} variant="secondary">
+                Identificar parâmetros
+              </Button>
+            )}
+
+            {importParsed && (
+              <>
+                <div className="bg-gray-50 rounded-xl border border-border p-4 flex flex-col gap-2">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Parâmetros identificados</p>
+                  {[
+                    { label: "utm_source", value: importParsed.source },
+                    { label: "utm_medium", value: importParsed.medium },
+                    { label: "utm_campaign", value: importParsed.campaign },
+                    { label: "utm_content", value: importParsed.content },
+                    { label: "utm_term", value: importParsed.term },
+                  ].filter((p) => p.value).map((p) => (
+                    <div key={p.label} className="flex gap-2 text-sm">
+                      <span className="font-mono text-brand w-36 shrink-0">{p.label}</span>
+                      <span className="text-text">{p.value}</span>
+                    </div>
+                  ))}
+                  {!importParsed.source && !importParsed.medium && !importParsed.campaign && (
+                    <p className="text-sm text-muted">Nenhum parâmetro UTM detectado nesta URL.</p>
+                  )}
+                </div>
+
+                <Input
+                  label="Nome do link (para o histórico)"
+                  placeholder="ex: Meta Ads — Junho — Banner"
+                  value={importName}
+                  onChange={(e) => setImportName(e.target.value)}
+                />
+
+                {clients.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-text block mb-1.5">Cliente (opcional)</label>
+                    <select
+                      className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                      value={importClientId}
+                      onChange={(e) => setImportClientId(e.target.value)}
+                    >
+                      <option value="">Sem cliente</option>
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button variant="secondary" className="flex-1" onClick={() => { setImportParsed(null); setImportUrl(""); }}>
+                    Limpar
+                  </Button>
+                  <Button className="flex-1" loading={importSaving} disabled={!importName.trim()} onClick={handleImportSave}>
+                    Salvar link importado
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

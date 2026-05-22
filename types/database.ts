@@ -68,6 +68,7 @@ export interface Database {
           id: string;
           user_id: string;
           client_id: string | null;
+          folder_id: string | null;
           name: string;
           base_url: string;
           utm_source: string | null;
@@ -82,6 +83,7 @@ export interface Database {
           id?: string;
           user_id: string;
           client_id?: string | null;
+          folder_id?: string | null;
           name: string;
           base_url: string;
           utm_source?: string | null;
@@ -96,6 +98,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           client_id?: string | null;
+          folder_id?: string | null;
           name?: string;
           base_url?: string;
           utm_source?: string | null;
@@ -104,6 +107,33 @@ export interface Database {
           utm_content?: string | null;
           utm_term?: string | null;
           full_url?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      folders: {
+        Row: {
+          id: string;
+          client_id: string;
+          user_id: string;
+          name: string;
+          color: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          user_id: string;
+          name: string;
+          color?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          user_id?: string;
+          name?: string;
+          color?: string;
           created_at?: string;
         };
         Relationships: [];

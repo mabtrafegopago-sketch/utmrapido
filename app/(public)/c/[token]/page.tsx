@@ -34,15 +34,21 @@ export default async function ClientPortalPage({ params }: Props) {
 
   if (!client) return notFound();
 
-  const { data: links } = await supabase
-    .from("utm_links")
-    .select("*")
-    .eq("client_id", client.id)
-    .order("created_at", { ascending: false });
+  const [{ data: links }, { data: folders }] = await Promise.all([
+    supabase
+      .from("utm_links")
+      .select("*")
+      .eq("client_id", client.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("folders")
+      .select("id, name, color")
+      .eq("client_id", client.id)
+      .order("created_at", { ascending: true }),
+  ]);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header do portal */}
       <div className="bg-white border-b border-border">
         <div className="max-w-3xl mx-auto px-4 py-6 flex items-center gap-4">
           <div
@@ -68,6 +74,7 @@ export default async function ClientPortalPage({ params }: Props) {
           clientName={client.name}
           clientColor={client.color}
           links={(links ?? []) as Parameters<typeof PortalClient>[0]["links"]}
+          folders={(folders ?? []) as Parameters<typeof PortalClient>[0]["folders"]}
         />
 
         <p className="text-center text-xs text-muted mt-10">

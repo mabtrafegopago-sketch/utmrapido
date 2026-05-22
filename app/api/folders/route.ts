@@ -8,27 +8,17 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const clientId = searchParams.get("client_id");
-  const page = Number(searchParams.get("page") ?? 1);
-  const limit = 20;
-  const from = (page - 1) * limit;
+  if (!clientId) return NextResponse.json({ error: "client_id obrigatório" }, { status: 400 });
 
-  let query = supabase
-    .from("utm_links")
-    .select("*", { count: "exact" })
+  const { data, error } = await supabase
+    .from("folders")
+    .select("*")
+    .eq("client_id", clientId)
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .range(from, from + limit - 1);
+    .order("created_at", { ascending: true });
 
-  if (clientId) query = query.eq("client_id", clientId);
-
-  const folderId = searchParams.get("folder_id");
-  if (folderId === "none") query = query.is("folder_id", null);
-  else if (folderId) query = query.eq("folder_id", folderId);
-
-  const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ data, count });
+  return NextResponse.json({ data });
 }
 
 export async function POST(request: Request) {
@@ -36,16 +26,12 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json();
-  const { name, base_url, utm_source, utm_medium, utm_campaign, utm_content, utm_term, full_url, client_id, folder_id } = body;
-
-  if (!name || !base_url || !full_url) {
-    return NextResponse.json({ error: "Campos obrigatórios ausentes" }, { status: 400 });
-  }
+  const { client_id, name, color } = await request.json();
+  if (!client_id || !name) return NextResponse.json({ error: "Campos obrigatórios ausentes" }, { status: 400 });
 
   const { data, error } = await supabase
-    .from("utm_links")
-    .insert({ user_id: user.id, name, base_url, utm_source, utm_medium, utm_campaign, utm_content, utm_term, full_url, client_id: client_id ?? null, folder_id: folder_id ?? null })
+    .from("folders")
+    .insert({ client_id, user_id: user.id, name: name.trim(), color: color ?? "#534AB7" })
     .select()
     .single();
 
@@ -63,7 +49,7 @@ export async function DELETE(request: Request) {
   if (!id) return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
 
   const { error } = await supabase
-    .from("utm_links")
+    .from("folders")
     .delete()
     .eq("id", id)
     .eq("user_id", user.id);

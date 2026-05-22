@@ -24,6 +24,8 @@ interface UTMGeneratorProps {
   userId?: string;
   clients?: { id: string; name: string }[];
   selectedClientId?: string;
+  folders?: { id: string; name: string; color: string }[];
+  selectedFolderId?: string;
   onSaved?: () => void;
   showUpgradeModal?: () => void;
 }
@@ -36,6 +38,8 @@ export function UTMGenerator({
   userId,
   clients = [],
   selectedClientId,
+  folders = [],
+  selectedFolderId,
   onSaved,
   showUpgradeModal,
 }: UTMGeneratorProps) {
@@ -49,6 +53,7 @@ export function UTMGenerator({
   const [term, setTerm] = useState("");
   const [linkName, setLinkName] = useState("");
   const [clientId, setClientId] = useState(selectedClientId ?? "");
+  const [folderId, setFolderId] = useState(selectedFolderId ?? "");
   const [saving, setSaving] = useState(false);
   const [urlError, setUrlError] = useState("");
   const [freeCount, setFreeCount] = useState(0);
@@ -156,6 +161,7 @@ export function UTMGenerator({
           utm_term: slugify(term) || null,
           full_url: fullUrl,
           client_id: clientId || null,
+          folder_id: folderId || null,
         }),
       });
       const json = await res.json();
@@ -298,6 +304,18 @@ export function UTMGenerator({
               placeholder="Sem cliente"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
+            />
+          </div>
+        )}
+
+        {isLoggedIn && folders.length > 0 && (
+          <div className="w-full sm:w-48">
+            <Select
+              label="Pasta"
+              options={folders.map((f) => ({ value: f.id, label: f.name }))}
+              placeholder="Sem pasta"
+              value={folderId}
+              onChange={(e) => setFolderId(e.target.value)}
             />
           </div>
         )}
