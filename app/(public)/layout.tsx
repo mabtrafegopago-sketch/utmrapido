@@ -97,7 +97,10 @@ function Footer() {
 
         <div className="border-t border-border mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
           <p>© {new Date().getFullYear()} UTM Rápido. Todos os direitos reservados.</p>
-          <p>Feito para gestores de tráfego brasileiros 🇧🇷</p>
+          <div className="flex items-center gap-4">
+            <Link href="/privacidade" className="hover:text-brand transition-colors">Política de Privacidade</Link>
+            <p>Feito para gestores de tráfego brasileiros 🇧🇷</p>
+          </div>
         </div>
       </div>
     </footer>
