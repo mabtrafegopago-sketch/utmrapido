@@ -251,7 +251,7 @@ export function UTMGenerator({
           <ParamTooltip {...PARAM_TOOLTIPS.utm_campaign} />
         </div>
         <Input
-          placeholder="ex: black_friday_2025 (espaços viram _ automaticamente)"
+          placeholder="ex: promo-junho"
           value={campaign}
           onChange={(e) => handleCampaignChange(e.target.value)}
           hint={effectiveCampaign && effectiveCampaign !== campaign ? `Será salvo como: ${effectiveCampaign}` : undefined}
