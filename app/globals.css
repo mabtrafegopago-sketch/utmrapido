@@ -1,25 +1,38 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand */
-  --color-brand: #534AB7;
-  --color-brand-dark: #3C3489;
-  --color-brand-light: #EEEDFE;
+  /* ─── Brand · violeta UTM ─── */
+  --color-brand:       #534AB7;  /* primary-500 */
+  --color-brand-dark:  #3C3489;  /* primary-700 */
+  --color-brand-light: #EEEDFE;  /* primary-100 */
 
-  /* Semantic */
-  --color-success: #0F6E56;
-  --color-warning: #BA7517;
-  --color-danger: #D85A30;
+  /* ─── Semantic states ─── */
+  --color-success: #067A3D;
+  --color-warning: #A35900;
+  --color-danger:  #DC2626;
+  --color-info:    #1A4FAD;
 
-  /* Neutral */
-  --color-text: #111827;
-  --color-muted: #6B7280;
-  --color-border: #E5E7EB;
-  --color-background: #FAFAFA;
+  /* ─── Neutral palette ─── */
+  --color-text:       #111827;  /* neutral-900 */
+  --color-muted:      #6B6B78;  /* neutral-500 */
+  --color-border:     #E7E7EC;  /* neutral-200 */
+  --color-background: #FAFAFA;  /* neutral-50  */
+  --color-surface:    #FFFFFF;  /* neutral-0   */
 
-  /* Fonts */
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains);
+  /* ─── Typography ─── */
+  --font-display: var(--font-sora);
+  --font-sans:    var(--font-manrope);
+  --font-mono:    var(--font-jetbrains);
+}
+
+/* ─── Dark mode ─── */
+[data-theme="dark"], .dark {
+  --color-background: #0E0D17;
+  --color-surface:    #16142A;
+  --color-border:     #2A2747;
+  --color-text:       #EDECF7;
+  --color-muted:      #9D9AB8;
+  --color-brand:      #8B82F0;
 }
 
 * {
@@ -34,16 +47,26 @@ body {
   background: var(--color-background);
   color: var(--color-text);
   font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 16px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
 }
 
-/* URL preview monospace */
-.font-mono {
-  font-family: var(--font-mono), 'Courier New', monospace;
+h1, h2, h3, h4 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  line-height: 1.2;
 }
 
-/* Scroll reveal animations */
+/* URL / UTM fields always monospace */
+.font-mono,
+input[type="url"],
+input[name*="utm"],
+.utm-value,
+code {
+  font-family: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ─── Scroll reveal animations ─── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }

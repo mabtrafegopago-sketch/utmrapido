@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ToastContainer } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/server";
+import { Logo } from "@/components/marketing/Logo";
 
 async function Header() {
   const supabase = await createClient();
@@ -9,9 +10,8 @@ async function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-border">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 font-bold text-text hover:text-brand transition-colors">
-          <span className="text-xl">⚡</span>
-          <span>UTM Rápido</span>
+        <Link href="/" className="flex items-center hover:opacity-80 transition-opacity" aria-label="UTM Rápido — início">
+          <Logo variant="horizontal" size={28} />
         </Link>
 
         {/* Nav — oculto no mobile */}
@@ -58,8 +58,8 @@ function Footer() {
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-8">
           <div className="sm:col-span-1">
-            <div className="flex items-center gap-2 font-bold text-text mb-2">
-              <span className="text-xl">⚡</span> UTM Rápido
+            <div className="mb-2">
+              <Logo variant="horizontal" size={22} />
             </div>
             <p className="text-xs text-muted leading-relaxed">
               Gerador de links UTM para gestores de tráfego brasileiros.
