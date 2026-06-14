@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
+import { Trash2, Copy, Link2 } from "lucide-react";
 
 interface Link {
   id: string;
@@ -43,7 +44,10 @@ export function LinkHistory({ links, onDelete }: LinkHistoryProps) {
 
   if (links.length === 0) {
     return (
-      <div className="text-center py-12 text-muted text-sm">
+      <div className="bg-white rounded-2xl border border-border text-center py-12 text-muted text-sm flex flex-col items-center gap-3">
+        <div className="w-12 h-12 rounded-2xl bg-brand-light text-brand flex items-center justify-center">
+          <Link2 className="w-6 h-6" />
+        </div>
         Nenhum link salvo ainda. Use o gerador acima para criar seu primeiro link.
       </div>
     );
@@ -71,9 +75,10 @@ export function LinkHistory({ links, onDelete }: LinkHistoryProps) {
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => copyLink(link.full_url)}
-                  className="text-xs font-medium text-brand hover:text-brand-dark bg-brand-light hover:bg-[#DDDAF8] px-2.5 py-1.5 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:text-brand-dark bg-brand-light hover:bg-[#DDDAF8] px-2.5 py-1.5 rounded-lg transition-colors"
                   title="Copiar link"
                 >
+                  <Copy className="w-3.5 h-3.5" />
                   Copiar
                 </button>
                 {onDelete && (
@@ -82,7 +87,7 @@ export function LinkHistory({ links, onDelete }: LinkHistoryProps) {
                     className="p-1.5 rounded-lg text-muted hover:text-danger hover:bg-red-50 transition-colors"
                     title="Excluir link"
                   >
-                    <TrashIcon />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -125,7 +130,9 @@ export function LinkHistory({ links, onDelete }: LinkHistoryProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center">
-              <div className="text-4xl mb-3">🗑️</div>
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-red-50 text-danger flex items-center justify-center mb-3">
+                <Trash2 className="w-6 h-6" />
+              </div>
               <h2 className="text-lg font-bold text-text mb-2">Excluir link?</h2>
               <p className="text-muted text-sm">Esta ação não pode ser desfeita.</p>
             </div>
@@ -144,13 +151,3 @@ export function LinkHistory({ links, onDelete }: LinkHistoryProps) {
   );
 }
 
-function TrashIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-      <path d="M10 11v6M14 11v6" />
-      <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
-    </svg>
-  );
-}

@@ -10,6 +10,20 @@ export function slugify(value: string): string {
     .replace(/\s+/g, "_");
 }
 
+/** Slug para URLs públicas: kebab-case, sem underscores, seguro para path. */
+export function clientSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
+}
+
 export function isValidUrl(url: string): boolean {
   try {
     const parsed = new URL(url);

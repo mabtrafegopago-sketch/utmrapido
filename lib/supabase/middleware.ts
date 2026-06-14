@@ -26,11 +26,18 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const { pathname } = request.nextUrl;
+
+  // ─── Rotas 100% públicas — portal do cliente nunca exige login ───
+  // /c/[token|slug]: portal do cliente acessado por qualquer pessoa
+  const publicPrefixes = ["/c/", "/api/c/"];
+  const isPublicPortal =
+    publicPrefixes.some((p) => pathname.startsWith(p)) ||
+    pathname === "/c";
+
+  if (isPublicPortal) {
+    return supabaseResponse;
+  }
 
   // Intercept OAuth code at root — happens when Supabase redirect URL is set to site root
   if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
@@ -43,6 +50,10 @@ export async function updateSession(request: NextRequest) {
     url.searchParams.set("next", next);
     return NextResponse.redirect(url);
   }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const protectedPaths = ["/dashboard", "/clientes", "/historico"];
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));

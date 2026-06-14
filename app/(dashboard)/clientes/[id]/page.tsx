@@ -42,7 +42,8 @@ export default async function ClientDetailPage({ params }: Props) {
   ]);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://utmrapido.com.br";
-  const portalUrl = `${siteUrl}/c/${client.access_token}`;
+  const portalIdentifier = client.slug || client.access_token;
+  const portalUrl = `${siteUrl}/c/${portalIdentifier}`;
 
   return (
     <ClientDetailClient

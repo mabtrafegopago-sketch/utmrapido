@@ -2,13 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { LinkHistory } from "@/components/dashboard/LinkHistory";
 import { UTMGenerator } from "@/components/utm/UTMGenerator";
+import { Link2, Users, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const [linksRes, clientsRes, weekRes] = await Promise.all([
     supabase
@@ -29,9 +32,26 @@ export default async function DashboardPage() {
   ]);
 
   const stats = [
-    { label: "Links criados", value: linksRes.count ?? linksRes.data?.length ?? 0, icon: "🔗", sub: "total" },
-    { label: "Clientes ativos", value: clientsRes.count ?? 0, icon: "👥", sub: "cadastrados" },
-    { label: "Esta semana", value: weekRes.count ?? 0, icon: "📈", sub: "últimos 7 dias" },
+    {
+      label: "Links criados",
+      value: linksRes.count ?? linksRes.data?.length ?? 0,
+      Icon: Link2,
+      sub: "total",
+    },
+    {
+      label: "Clientes ativos",
+      value: clientsRes.count ?? 0,
+      Icon: Users,
+      sub: "cadastrados",
+      iconColor: "#0F6E56",
+    },
+    {
+      label: "Esta semana",
+      value: weekRes.count ?? 0,
+      Icon: TrendingUp,
+      sub: "últimos 7 dias",
+      iconColor: "#BA7517",
+    },
   ];
 
   const clients = (clientsRes.data ?? []).map((c) => ({ id: c.id, name: c.name }));
@@ -45,13 +65,11 @@ export default async function DashboardPage() {
 
       <StatsCards stats={stats} />
 
-      {/* Generator */}
-      <div className="bg-white rounded-2xl border border-border p-6">
+      <div className="bg-white rounded-2xl border border-border p-6 hover:shadow-sm transition-shadow">
         <h2 className="text-lg font-bold text-text mb-5">Novo link UTM</h2>
         <UTMGenerator isLoggedIn isPro clients={clients} />
       </div>
 
-      {/* Recent links */}
       <div>
         <h2 className="text-lg font-bold text-text mb-4">Últimos links criados</h2>
         <LinkHistory links={linksRes.data ?? []} />

@@ -41,6 +41,8 @@ export interface Database {
           email: string | null;
           color: string;
           access_token: string;
+          slug: string | null;
+          logo_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -50,6 +52,8 @@ export interface Database {
           email?: string | null;
           color?: string;
           access_token?: string;
+          slug?: string | null;
+          logo_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -59,6 +63,8 @@ export interface Database {
           email?: string | null;
           color?: string;
           access_token?: string;
+          slug?: string | null;
+          logo_url?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -118,6 +124,7 @@ export interface Database {
           user_id: string;
           name: string;
           color: string;
+          parent_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -126,6 +133,7 @@ export interface Database {
           user_id: string;
           name: string;
           color?: string;
+          parent_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -134,6 +142,7 @@ export interface Database {
           user_id?: string;
           name?: string;
           color?: string;
+          parent_id?: string | null;
           created_at?: string;
         };
         Relationships: [];

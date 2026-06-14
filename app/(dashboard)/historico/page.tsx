@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { LinkHistory } from "@/components/dashboard/LinkHistory";
 import { toast } from "@/components/ui/Toast";
 import { parseUTMUrl } from "@/lib/utils/utm";
+import { Download, Upload, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Link {
   id: string;
@@ -146,10 +147,12 @@ export default function HistoricoPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => setShowImport(true)}>
-            ↓ Importar link
+            <Upload className="w-4 h-4" />
+            Importar link
           </Button>
           <Button variant="secondary" onClick={exportCSV} disabled={links.length === 0}>
-            ↓ Exportar CSV
+            <Download className="w-4 h-4" />
+            Exportar CSV
           </Button>
         </div>
       </div>
@@ -195,11 +198,13 @@ export default function HistoricoPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button variant="ghost" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-            ← Anterior
+            <ChevronLeft className="w-4 h-4" />
+            Anterior
           </Button>
           <span className="text-sm text-muted">{page} / {totalPages}</span>
           <Button variant="ghost" size="sm" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
-            Próxima →
+            Próxima
+            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       )}
@@ -213,7 +218,9 @@ export default function HistoricoPage() {
                 <h2 className="text-lg font-bold text-text">Importar link UTM</h2>
                 <p className="text-xs text-muted mt-0.5">Cole uma URL com parâmetros UTM para importar</p>
               </div>
-              <button onClick={() => setShowImport(false)} className="text-muted hover:text-text text-xl leading-none">×</button>
+              <button onClick={() => setShowImport(false)} className="text-muted hover:text-text p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <div>

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ClientCard } from "@/components/dashboard/ClientCard";
 import { ToastContainer, toast } from "@/components/ui/Toast";
+import { Plus, Users, X } from "lucide-react";
+import { clientSlug } from "@/lib/utils/utm";
 
 const COLOR_PRESETS = ["#534AB7", "#0F6E56", "#BA7517", "#D85A30", "#1E40AF", "#9333EA", "#0891B2"];
 
@@ -14,6 +16,8 @@ interface Client {
   email: string | null;
   color: string;
   access_token: string;
+  slug: string | null;
+  logo_url: string | null;
   created_at: string;
   utm_links: { count: number }[];
 }
@@ -23,7 +27,8 @@ export default function ClientesPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", color: "#534AB7" });
+  const [form, setForm] = useState({ name: "", email: "", color: "#534AB7", slug: "" });
+  const [slugDirty, setSlugDirty] = useState(false);
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
@@ -33,7 +38,16 @@ export default function ClientesPage() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchClients(); }, [fetchClients]);
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
+
+  // Auto-gera slug a partir do nome enquanto usuário não editou manualmente
+  useEffect(() => {
+    if (!slugDirty) {
+      setForm((f) => ({ ...f, slug: clientSlug(f.name) }));
+    }
+  }, [form.name, slugDirty]);
 
   async function createClient() {
     if (!form.name.trim()) return;
@@ -47,7 +61,8 @@ export default function ClientesPage() {
     if (res.ok) {
       toast.success("Cliente criado!");
       setShowModal(false);
-      setForm({ name: "", email: "", color: "#534AB7" });
+      setForm({ name: "", email: "", color: "#534AB7", slug: "" });
+      setSlugDirty(false);
       fetchClients();
     } else {
       toast.error(json.error ?? "Erro ao criar cliente.");
@@ -72,23 +87,36 @@ export default function ClientesPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-text mb-1">Clientes</h1>
-            <p className="text-muted text-sm">{clients.length} cliente{clients.length !== 1 ? "s" : ""} cadastrado{clients.length !== 1 ? "s" : ""}</p>
+            <p className="text-muted text-sm">
+              {clients.length} cliente{clients.length !== 1 ? "s" : ""} cadastrado
+              {clients.length !== 1 ? "s" : ""}
+            </p>
           </div>
-          <Button onClick={() => setShowModal(true)}>+ Novo cliente</Button>
+          <Button onClick={() => setShowModal(true)}>
+            <Plus className="w-4 h-4" />
+            Novo cliente
+          </Button>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-border p-5 h-32 animate-pulse" />
+              <div key={i} className="bg-white rounded-2xl border border-border p-5 h-36 animate-pulse" />
             ))}
           </div>
         ) : clients.length === 0 ? (
           <div className="bg-white rounded-2xl border border-border p-12 text-center">
-            <p className="text-4xl mb-3">👥</p>
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-light text-brand flex items-center justify-center mb-4">
+              <Users className="w-7 h-7" />
+            </div>
             <p className="font-semibold text-text mb-2">Nenhum cliente ainda</p>
-            <p className="text-muted text-sm mb-6">Crie um cliente para organizar seus links por conta.</p>
-            <Button onClick={() => setShowModal(true)}>Criar primeiro cliente</Button>
+            <p className="text-muted text-sm mb-6">
+              Crie um cliente para organizar seus links por conta.
+            </p>
+            <Button onClick={() => setShowModal(true)}>
+              <Plus className="w-4 h-4" />
+              Criar primeiro cliente
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -100,6 +128,8 @@ export default function ClientesPage() {
                 email={c.email}
                 color={c.color}
                 accessToken={c.access_token}
+                slug={c.slug}
+                logoUrl={c.logo_url}
                 linkCount={c.utm_links?.[0]?.count ?? 0}
                 onDelete={deleteClient}
               />
@@ -110,12 +140,23 @@ export default function ClientesPage() {
 
       {/* Modal novo cliente */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowModal(false)}
+        >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 flex flex-col gap-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold text-text">Novo cliente</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-text">Novo cliente</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-muted hover:text-text p-1 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
             <Input
               label="Nome do cliente *"
@@ -133,13 +174,31 @@ export default function ClientesPage() {
             />
 
             <div>
+              <Input
+                label="URL personalizada (slug)"
+                placeholder="loja-da-maria"
+                value={form.slug}
+                onChange={(e) => {
+                  setSlugDirty(true);
+                  setForm((f) => ({ ...f, slug: clientSlug(e.target.value) }));
+                }}
+                hint={`Portal: utmrapido.com.br/c/${form.slug || "..."}`}
+              />
+            </div>
+
+            <div>
               <label className="text-sm font-medium text-text block mb-2">Cor do cliente</label>
               <div className="flex gap-2 flex-wrap">
                 {COLOR_PRESETS.map((color) => (
                   <button
                     key={color}
+                    type="button"
                     onClick={() => setForm((f) => ({ ...f, color }))}
-                    className={`w-8 h-8 rounded-lg transition-all ${form.color === color ? "ring-2 ring-offset-2 ring-brand scale-110" : ""}`}
+                    className={`w-8 h-8 rounded-lg transition-all ${
+                      form.color === color
+                        ? "ring-2 ring-offset-2 ring-brand scale-110"
+                        : "hover:scale-105"
+                    }`}
                     style={{ backgroundColor: color }}
                     title={color}
                   />
@@ -151,7 +210,12 @@ export default function ClientesPage() {
               <Button variant="secondary" className="flex-1" onClick={() => setShowModal(false)}>
                 Cancelar
               </Button>
-              <Button className="flex-1" loading={creating} onClick={createClient} disabled={!form.name.trim()}>
+              <Button
+                className="flex-1"
+                loading={creating}
+                onClick={createClient}
+                disabled={!form.name.trim()}
+              >
                 Criar cliente
               </Button>
             </div>
