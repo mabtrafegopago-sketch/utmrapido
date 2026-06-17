@@ -11,12 +11,14 @@ import {
   buildUTMUrl,
   isValidUrl,
   slugify,
+  generateAutoDescription,
   SOURCE_PRESETS,
   MEDIUM_PRESETS,
   FREE_LINK_LIMIT,
   FREE_LINKS_KEY,
   SESSION_KEY,
 } from "@/lib/utils/utm";
+import { Sparkles } from "lucide-react";
 
 interface UTMGeneratorProps {
   isLoggedIn?: boolean;
@@ -54,6 +56,8 @@ export function UTMGenerator({
   const [content, setContent] = useState("");
   const [term, setTerm] = useState("");
   const [linkName, setLinkName] = useState("");
+  const [description, setDescription] = useState("");
+  const [descriptionTouched, setDescriptionTouched] = useState(false);
   const [clientId, setClientId] = useState(selectedClientId ?? "");
   const [folderId, setFolderId] = useState(selectedFolderId ?? "");
   const [saving, setSaving] = useState(false);
@@ -85,6 +89,23 @@ export function UTMGenerator({
     content: slugify(content),
     term: slugify(term),
   });
+
+  const suggestedDescription = generateAutoDescription({
+    utm_source: effectiveSource || null,
+    utm_medium: effectiveMedium || null,
+    utm_campaign: effectiveCampaign || null,
+    utm_content: slugify(content) || null,
+    utm_term: slugify(term) || null,
+  });
+
+  useEffect(() => {
+    if (!descriptionTouched) setDescription(suggestedDescription);
+  }, [suggestedDescription, descriptionTouched]);
+
+  function applySuggestion() {
+    setDescription(suggestedDescription);
+    setDescriptionTouched(false);
+  }
 
   function handleCampaignChange(value: string) {
     setCampaign(value);
@@ -166,6 +187,7 @@ export function UTMGenerator({
           full_url: fullUrl,
           client_id: clientId || null,
           folder_id: folderId || null,
+          description: description.trim() || null,
         }),
       });
       const json = await res.json();
@@ -288,6 +310,39 @@ export function UTMGenerator({
 
       {/* Preview */}
       <URLPreview url={fullUrl} />
+
+      {/* Descrição / Contexto */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-sm font-medium text-text">Descrição / Contexto (opcional)</label>
+          {suggestedDescription && description !== suggestedDescription && (
+            <button
+              type="button"
+              onClick={applySuggestion}
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-brand-dark transition-colors"
+              title="Usar sugestão automática"
+            >
+              <Sparkles className="w-3 h-3" />
+              Usar sugestão
+            </button>
+          )}
+        </div>
+        <textarea
+          className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+          rows={2}
+          placeholder="Ex: Link enviado no grupo de WhatsApp dos talleres para a campanha da Expo Mecânicos no México"
+          value={description}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setDescriptionTouched(true);
+          }}
+        />
+        {suggestedDescription && !descriptionTouched && (
+          <p className="text-xs text-muted">
+            <Sparkles className="inline w-3 h-3 text-brand" /> Sugestão automática — você pode editar.
+          </p>
+        )}
+      </div>
 
       {/* Salvar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">

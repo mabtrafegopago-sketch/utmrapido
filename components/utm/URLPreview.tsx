@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "@/components/ui/Toast";
+import { UTMStructure } from "@/components/utm/UTMStructure";
 
 interface URLPreviewProps {
   url: string;
@@ -27,44 +28,59 @@ export function URLPreview({ url }: URLPreviewProps) {
   }
 
   const parts = parseURLParts(url);
+  const params = parts.params.reduce<Record<string, string>>((acc, p) => {
+    acc[p.key] = p.value;
+    return acc;
+  }, {});
 
   return (
-    <div className="rounded-xl border border-border bg-white overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-border">
-        <span className="text-xs font-medium text-muted uppercase tracking-wide">
-          Preview do link
-        </span>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 text-xs font-medium text-brand hover:text-brand-dark transition-colors px-2 py-1 rounded-md hover:bg-brand-light"
-        >
-          {copied ? (
+    <div className="flex flex-col gap-2">
+      <div className="rounded-xl border border-border bg-white overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-border">
+          <span className="text-xs font-medium text-muted uppercase tracking-wide">
+            Preview do link
+          </span>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 text-xs font-medium text-brand hover:text-brand-dark transition-colors px-2 py-1 rounded-md hover:bg-brand-light"
+          >
+            {copied ? (
+              <>
+                <CheckIcon /> Copiado!
+              </>
+            ) : (
+              <>
+                <CopyIcon /> Copiar
+              </>
+            )}
+          </button>
+        </div>
+        <div className="p-4 font-mono text-xs leading-relaxed break-all">
+          <span className="text-gray-700">{parts.base}</span>
+          {parts.params.length > 0 && (
             <>
-              <CheckIcon /> Copiado!
-            </>
-          ) : (
-            <>
-              <CopyIcon /> Copiar
+              <span className="text-muted">?</span>
+              {parts.params.map((p, i) => (
+                <span key={p.key}>
+                  {i > 0 && <span className="text-muted">&amp;</span>}
+                  <span className="text-brand-dark font-semibold">{p.key}</span>
+                  <span className="text-muted">=</span>
+                  <span className="text-success">{p.value}</span>
+                </span>
+              ))}
             </>
           )}
-        </button>
+        </div>
       </div>
-      <div className="p-4 font-mono text-xs leading-relaxed break-all">
-        <span className="text-gray-700">{parts.base}</span>
-        {parts.params.length > 0 && (
-          <>
-            <span className="text-muted">?</span>
-            {parts.params.map((p, i) => (
-              <span key={p.key}>
-                {i > 0 && <span className="text-muted">&amp;</span>}
-                <span className="text-brand-dark font-semibold">{p.key}</span>
-                <span className="text-muted">=</span>
-                <span className="text-success">{p.value}</span>
-              </span>
-            ))}
-          </>
-        )}
-      </div>
+
+      <UTMStructure
+        url={url}
+        utm_source={params.utm_source}
+        utm_medium={params.utm_medium}
+        utm_campaign={params.utm_campaign}
+        utm_content={params.utm_content}
+        utm_term={params.utm_term}
+      />
     </div>
   );
 }

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { name, base_url, utm_source, utm_medium, utm_campaign, utm_content, utm_term, full_url, client_id, folder_id } = body;
+  const { name, base_url, utm_source, utm_medium, utm_campaign, utm_content, utm_term, full_url, client_id, folder_id, description } = body;
 
   if (!name || !base_url || !full_url) {
     return NextResponse.json({ error: "Campos obrigatórios ausentes" }, { status: 400 });
@@ -45,12 +45,56 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("utm_links")
-    .insert({ user_id: user.id, name, base_url, utm_source, utm_medium, utm_campaign, utm_content, utm_term, full_url, client_id: client_id ?? null, folder_id: folder_id ?? null })
+    .insert({ user_id: user.id, name, base_url, utm_source, utm_medium, utm_campaign, utm_content, utm_term, full_url, client_id: client_id ?? null, folder_id: folder_id ?? null, description: description ?? null })
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data }, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await request.json();
+  const { id, ids, folder_id, client_id, description, name } = body;
+
+  // Atualização em lote: { ids: string[], folder_id?, client_id? }
+  if (Array.isArray(ids) && ids.length > 0) {
+    const update: { folder_id?: string | null; client_id?: string | null } = {};
+    if (folder_id === null || typeof folder_id === "string") update.folder_id = folder_id || null;
+    if (client_id === null || typeof client_id === "string") update.client_id = client_id || null;
+    if (Object.keys(update).length === 0) {
+      return NextResponse.json({ error: "Nada para atualizar" }, { status: 400 });
+    }
+    const { error } = await supabase
+      .from("utm_links")
+      .update(update)
+      .in("id", ids)
+      .eq("user_id", user.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, count: ids.length });
+  }
+
+  if (!id) return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
+
+  const update: { description?: string | null; name?: string; folder_id?: string | null } = {};
+  if (typeof description === "string" || description === null) update.description = description || null;
+  if (typeof name === "string") update.name = name.trim();
+  if (folder_id === null || typeof folder_id === "string") update.folder_id = folder_id || null;
+
+  const { data, error } = await supabase
+    .from("utm_links")
+    .update(update)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ data });
 }
 
 export async function DELETE(request: Request) {
@@ -60,6 +104,20 @@ export async function DELETE(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
+  const idsParam = searchParams.get("ids");
+
+  if (idsParam) {
+    const ids = idsParam.split(",").map((s) => s.trim()).filter(Boolean);
+    if (ids.length === 0) return NextResponse.json({ error: "IDs obrigatórios" }, { status: 400 });
+    const { error } = await supabase
+      .from("utm_links")
+      .delete()
+      .in("id", ids)
+      .eq("user_id", user.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, count: ids.length });
+  }
+
   if (!id) return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
 
   const { error } = await supabase

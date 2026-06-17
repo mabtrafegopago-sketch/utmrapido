@@ -83,6 +83,7 @@ export interface Database {
           utm_content: string | null;
           utm_term: string | null;
           full_url: string;
+          description: string | null;
           created_at: string;
         };
         Insert: {
@@ -98,6 +99,7 @@ export interface Database {
           utm_content?: string | null;
           utm_term?: string | null;
           full_url: string;
+          description?: string | null;
           created_at?: string;
         };
         Update: {
@@ -113,6 +115,55 @@ export interface Database {
           utm_content?: string | null;
           utm_term?: string | null;
           full_url?: string;
+          description?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      client_users: {
+        Row: {
+          id: string;
+          client_id: string;
+          name: string;
+          email: string;
+          password_hash: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          name: string;
+          email: string;
+          password_hash: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          name?: string;
+          email?: string;
+          password_hash?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      client_user_sessions: {
+        Row: {
+          token: string;
+          client_user_id: string;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          token: string;
+          client_user_id: string;
+          expires_at: string;
+          created_at?: string;
+        };
+        Update: {
+          token?: string;
+          client_user_id?: string;
+          expires_at?: string;
           created_at?: string;
         };
         Relationships: [];

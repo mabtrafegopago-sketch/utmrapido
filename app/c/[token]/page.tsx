@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PortalClient } from "./PortalClient";
+import { getClientUserSession } from "@/lib/utils/client-session";
 import type { Metadata } from "next";
 
 interface Props {
@@ -48,6 +49,12 @@ export default async function ClientPortalPage({ params }: Props) {
 
   if (!client) return notFound();
 
+  const session = await getClientUserSession();
+  const authedUser =
+    session && session.client_id === client.id
+      ? { id: session.id, name: session.name }
+      : null;
+
   const [{ data: links }, { data: folders }] = await Promise.all([
     supabase
       .from("utm_links")
@@ -72,6 +79,7 @@ export default async function ClientPortalPage({ params }: Props) {
       }}
       links={(links ?? []) as Parameters<typeof PortalClient>[0]["links"]}
       folders={(folders ?? []) as Parameters<typeof PortalClient>[0]["folders"]}
+      authedUser={authedUser}
     />
   );
 }

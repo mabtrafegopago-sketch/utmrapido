@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { UTMGenerator } from "@/components/utm/UTMGenerator";
 import { LinkHistory } from "@/components/dashboard/LinkHistory";
+import { BulkActionBar } from "@/components/dashboard/BulkActionBar";
+import { MoveToFolderModal } from "@/components/dashboard/MoveToFolderModal";
+import { ClientUsersSection } from "@/components/dashboard/ClientUsersSection";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PDFExport } from "@/components/ui/PDFExport";
 import { toast } from "@/components/ui/Toast";
-import { parseUTMUrl, clientSlug } from "@/lib/utils/utm";
+import { parseUTMUrl, clientSlug, generateAutoDescription } from "@/lib/utils/utm";
 import {
   ArrowLeft,
   Plus,
@@ -20,6 +23,8 @@ import {
   X,
   Trash2,
   Upload,
+  CheckSquare,
+  Sparkles,
 } from "lucide-react";
 
 interface LinkRow {
@@ -31,6 +36,7 @@ interface LinkRow {
   utm_campaign: string | null;
   utm_content: string | null;
   utm_term: string | null;
+  description: string | null;
   created_at: string;
   client_id: string | null;
   folder_id: string | null;
@@ -123,8 +129,18 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
   const [importUrl, setImportUrl] = useState("");
   const [importName, setImportName] = useState("");
   const [importFolderId, setImportFolderId] = useState("");
+  const [importDescription, setImportDescription] = useState("");
+  const [importDescriptionTouched, setImportDescriptionTouched] = useState(false);
   const [importParsed, setImportParsed] = useState<ReturnType<typeof parseUTMUrl> | null>(null);
   const [importSaving, setImportSaving] = useState(false);
+
+  // Seleção em lote
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkPdfOpen, setBulkPdfOpen] = useState(false);
 
   async function refreshLinks() {
     const res = await fetch(`/api/links?client_id=${client.id}&page=1`);
@@ -193,6 +209,8 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
   function handleImportUrlChange(value: string) {
     setImportUrl(value);
     setImportParsed(null);
+    setImportDescription("");
+    setImportDescriptionTouched(false);
     if (!importName) setImportName("");
   }
 
@@ -200,7 +218,22 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
     const parsed = parseUTMUrl(importUrl.trim());
     setImportParsed(parsed);
     if (!importName && parsed.campaign) setImportName(parsed.campaign);
+    setImportDescriptionTouched(false);
   }
+
+  // Auto-fill da descrição quando parse muda
+  useEffect(() => {
+    if (!importParsed || importDescriptionTouched) return;
+    setImportDescription(
+      generateAutoDescription({
+        utm_source: importParsed.source ?? null,
+        utm_medium: importParsed.medium ?? null,
+        utm_campaign: importParsed.campaign ?? null,
+        utm_content: importParsed.content ?? null,
+        utm_term: importParsed.term ?? null,
+      })
+    );
+  }, [importParsed, importDescriptionTouched]);
 
   async function handleImportSave() {
     if (!importParsed || !importName.trim()) return;
@@ -220,6 +253,7 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
           full_url: importUrl.trim(),
           client_id: client.id,
           folder_id: importFolderId || null,
+          description: importDescription.trim() || null,
         }),
       });
       if (!res.ok) throw new Error();
@@ -228,12 +262,77 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
       setImportUrl("");
       setImportName("");
       setImportFolderId("");
+      setImportDescription("");
+      setImportDescriptionTouched(false);
       setImportParsed(null);
       await refreshLinks();
     } catch {
       toast.error("Erro ao importar link.");
     } finally {
       setImportSaving(false);
+    }
+  }
+
+  // ─── Seleção em lote ───
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function selectAllVisible(ids: string[]) {
+    setSelectedIds(new Set(ids));
+  }
+  function cancelSelection() {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  }
+  function enterSelectionMode() {
+    setSelectionMode(true);
+    setSelectedIds(new Set());
+  }
+
+  // selectedLinks calculado abaixo após visibleLinks
+  async function bulkCopy() {
+    const text = links.filter((l) => selectedIds.has(l.id)).map((l) => l.full_url).join("\n");
+    await navigator.clipboard.writeText(text);
+    toast.success(`${selectedIds.size} link${selectedIds.size !== 1 ? "s" : ""} copiado${selectedIds.size !== 1 ? "s" : ""}!`);
+  }
+  async function bulkMove(folderId: string | null) {
+    setBulkSaving(true);
+    try {
+      const res = await fetch("/api/links", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), folder_id: folderId }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Links movidos!");
+      setMoveOpen(false);
+      cancelSelection();
+      await refreshLinks();
+    } catch {
+      toast.error("Erro ao mover links.");
+    } finally {
+      setBulkSaving(false);
+    }
+  }
+  async function bulkDelete() {
+    setBulkSaving(true);
+    try {
+      const ids = Array.from(selectedIds).join(",");
+      const res = await fetch(`/api/links?ids=${ids}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast.success("Links excluídos!");
+      setBulkDeleteOpen(false);
+      cancelSelection();
+      await refreshLinks();
+    } catch {
+      toast.error("Erro ao excluir links.");
+    } finally {
+      setBulkSaving(false);
     }
   }
 
@@ -521,6 +620,17 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
               : `${activeFolderObj?.name ?? ""} (${visibleLinks.length})`}
           </h2>
           <div className="flex gap-2 flex-wrap">
+            {!selectionMode ? (
+              <Button variant="secondary" onClick={enterSelectionMode} disabled={visibleLinks.length === 0}>
+                <CheckSquare className="w-4 h-4" />
+                Selecionar
+              </Button>
+            ) : (
+              <Button variant="ghost" onClick={cancelSelection}>
+                <X className="w-4 h-4" />
+                Cancelar
+              </Button>
+            )}
             <PDFExport
               clientName={client.name}
               clientLogoUrl={client.logo_url}
@@ -538,8 +648,83 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
             </Button>
           </div>
         </div>
-        <LinkHistory links={visibleLinks} onDelete={(id) => setDeleteTarget(id)} />
+        <LinkHistory
+          links={visibleLinks}
+          onDelete={selectionMode ? undefined : (id) => setDeleteTarget(id)}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+        />
       </div>
+
+      {/* Usuários do cliente */}
+      <ClientUsersSection clientId={client.id} clientName={client.name} />
+
+      {/* Bulk action bar */}
+      {selectionMode && (
+        <BulkActionBar
+          count={selectedIds.size}
+          totalCount={visibleLinks.length}
+          onSelectAll={() => selectAllVisible(visibleLinks.map((l) => l.id))}
+          onCancel={cancelSelection}
+          onCopyAll={bulkCopy}
+          onMoveToFolder={() => setMoveOpen(true)}
+          onExportPDF={() => setBulkPdfOpen(true)}
+          onDelete={() => setBulkDeleteOpen(true)}
+        />
+      )}
+
+      <MoveToFolderModal
+        open={moveOpen}
+        onClose={() => setMoveOpen(false)}
+        folders={folders}
+        count={selectedIds.size}
+        saving={bulkSaving}
+        onConfirm={(folderId) => bulkMove(folderId)}
+      />
+
+      {bulkDeleteOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setBulkDeleteOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-red-50 text-danger flex items-center justify-center mb-3">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <h2 className="text-lg font-bold text-text mb-2">
+                Excluir {selectedIds.size} link{selectedIds.size !== 1 ? "s" : ""}?
+              </h2>
+              <p className="text-muted text-sm">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setBulkDeleteOpen(false)}>
+                Cancelar
+              </Button>
+              <Button variant="danger" className="flex-1" loading={bulkSaving} onClick={bulkDelete}>
+                Excluir
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bulkPdfOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setBulkPdfOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-text">
+              Exportar {selectedIds.size} link{selectedIds.size !== 1 ? "s" : ""}
+            </h2>
+            <p className="text-muted text-sm">PDF apenas dos links selecionados.</p>
+            <PDFExport
+              clientName={client.name}
+              clientLogoUrl={client.logo_url}
+              clientColor={client.color}
+              links={links.filter((l) => selectedIds.has(l.id))}
+              folders={folders}
+            />
+            <Button variant="ghost" onClick={() => setBulkPdfOpen(false)}>Fechar</Button>
+          </div>
+        </div>
+      )}
 
       {/* ── MODAL: Editar cliente ── */}
       {showEditModal && (
@@ -867,6 +1052,28 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
                   onChange={(e) => setImportName(e.target.value)}
                 />
 
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <label className="text-sm font-medium text-text">Descrição / Contexto (opcional)</label>
+                    {!importDescriptionTouched && importDescription && (
+                      <span className="inline-flex items-center gap-1 text-xs text-brand">
+                        <Sparkles className="w-3 h-3" />
+                        Sugestão automática
+                      </span>
+                    )}
+                  </div>
+                  <textarea
+                    className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+                    rows={2}
+                    placeholder="Ex: Link enviado no grupo de WhatsApp dos talleres"
+                    value={importDescription}
+                    onChange={(e) => {
+                      setImportDescription(e.target.value);
+                      setImportDescriptionTouched(true);
+                    }}
+                  />
+                </div>
+
                 {folders.length > 0 && (
                   <div>
                     <label className="text-sm font-medium text-text block mb-1.5">
@@ -895,6 +1102,8 @@ export function ClientDetailClient({ client: initialClient, initialLinks, initia
                     onClick={() => {
                       setImportParsed(null);
                       setImportUrl("");
+                      setImportDescription("");
+                      setImportDescriptionTouched(false);
                     }}
                   >
                     Limpar

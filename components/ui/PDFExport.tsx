@@ -13,6 +13,7 @@ interface LinkRow {
   utm_campaign: string | null;
   utm_content: string | null;
   utm_term: string | null;
+  description?: string | null;
   created_at: string;
   folder_id?: string | null;
 }
@@ -154,6 +155,19 @@ export function PDFExport({
         <div style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 6 }}>
           {link.name}
         </div>
+        {link.description ? (
+          <div
+            style={{
+              fontSize: 10,
+              color: "#4B5563",
+              marginBottom: 8,
+              lineHeight: 1.45,
+              fontStyle: "italic",
+            }}
+          >
+            {link.description}
+          </div>
+        ) : null}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
           {params(link).map((p) => (
             <span
