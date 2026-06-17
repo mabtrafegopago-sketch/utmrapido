@@ -18,7 +18,7 @@ import {
   FREE_LINKS_KEY,
   SESSION_KEY,
 } from "@/lib/utils/utm";
-import { Sparkles } from "lucide-react";
+import { Sparkles, FileText } from "lucide-react";
 
 interface UTMGeneratorProps {
   isLoggedIn?: boolean;
@@ -321,10 +321,13 @@ export function UTMGenerator({
 
       {/* Descrição / Contexto */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-text">Descrição (opcional)</label>
+        <label className="text-sm font-medium text-text inline-flex items-center gap-1.5">
+          <FileText className="w-4 h-4 text-brand" />
+          Descrição / Contexto (opcional)
+        </label>
         <textarea
           className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
-          rows={3}
+          rows={5}
           placeholder="Ex: Link enviado no grupo de WhatsApp para a campanha de lançamento do ebook"
           value={description}
           onChange={(e) => {
@@ -332,6 +335,9 @@ export function UTMGenerator({
             setDescriptionTouched(true);
           }}
         />
+        <p className="text-xs text-muted">
+          Explique para que serve este link, onde será usado e quem vai receber.
+        </p>
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"

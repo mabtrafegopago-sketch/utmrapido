@@ -8,7 +8,7 @@ import { Logo } from "@/components/marketing/Logo";
 import { Button } from "@/components/ui/Button";
 import { UTMStructure } from "@/components/utm/UTMStructure";
 import { toast } from "@/components/ui/Toast";
-import { Folder, FolderOpen, Link2, ArrowRight, CheckSquare, Square, X, Copy, FileDown, LogOut } from "lucide-react";
+import { Folder, FolderOpen, Link2, ArrowRight, CheckSquare, Square, X, Copy, FileDown, LogOut, FileText } from "lucide-react";
 
 export interface PortalLink {
   id: string;
@@ -79,13 +79,21 @@ function LinkCard({
           {!selectionMode && <Link2 className="w-4 h-4 text-brand mt-0.5 shrink-0" />}
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-text leading-tight">{link.name}</p>
-            {link.description && (
-              <p className="text-xs italic text-muted mt-1 leading-relaxed">{link.description}</p>
-            )}
           </div>
         </div>
         {!selectionMode && <CopyButton url={link.full_url} label="Copiar" />}
       </div>
+      {link.description && (
+        <div className="rounded-md p-2.5 border-l-[3px] border-l-brand bg-[#F8F7FF] mb-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <FileText className="w-3.5 h-3.5 text-muted" />
+            <span className="text-[11px] font-medium text-muted uppercase tracking-wide">
+              Descrição
+            </span>
+          </div>
+          <p className="text-sm text-text leading-relaxed">{link.description}</p>
+        </div>
+      )}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {link.utm_source && <Badge variant="default">source: {link.utm_source}</Badge>}
         {link.utm_medium && <Badge variant="info">medium: {link.utm_medium}</Badge>}
