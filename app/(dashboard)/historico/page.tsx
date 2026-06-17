@@ -501,25 +501,46 @@ export default function HistoricoPage() {
 
                 {/* Descrição automática */}
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <label className="text-sm font-medium text-text">Descrição / Contexto (opcional)</label>
-                    {!importDescriptionTouched && importDescription && (
-                      <span className="inline-flex items-center gap-1 text-xs text-brand">
-                        <Sparkles className="w-3 h-3" />
-                        Sugestão automática
-                      </span>
-                    )}
-                  </div>
+                  <label className="text-sm font-medium text-text block mb-1.5">Descrição (opcional)</label>
                   <textarea
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
-                    rows={2}
-                    placeholder="Ex: Link enviado no grupo de WhatsApp dos talleres"
+                    rows={3}
+                    placeholder="Ex: Link enviado no grupo de WhatsApp para a campanha de lançamento do ebook"
                     value={importDescription}
                     onChange={(e) => {
                       setImportDescription(e.target.value);
                       setImportDescriptionTouched(true);
                     }}
                   />
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!importParsed) return;
+                        const suggestion = generateAutoDescription({
+                          utm_source: importParsed.source ?? null,
+                          utm_medium: importParsed.medium ?? null,
+                          utm_campaign: importParsed.campaign ?? null,
+                          utm_content: importParsed.content ?? null,
+                          utm_term: importParsed.term ?? null,
+                        });
+                        if (suggestion) {
+                          setImportDescription(suggestion);
+                          setImportDescriptionTouched(false);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:text-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={!importParsed?.source && !importParsed?.medium && !importParsed?.campaign}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Gerar descrição automática
+                    </button>
+                    {!importDescriptionTouched && importDescription && (
+                      <span className="text-xs text-muted">
+                        Sugestão automática — você pode editar.
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {clients.length > 0 && (

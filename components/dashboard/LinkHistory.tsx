@@ -95,7 +95,7 @@ export function LinkHistory({
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-text text-sm truncate">{link.name}</p>
                     {link.description && (
-                      <p className="text-xs text-muted mt-0.5 leading-relaxed">{link.description}</p>
+                      <p className="text-xs italic text-muted mt-0.5 leading-relaxed">{link.description}</p>
                     )}
                     <p
                       className="text-xs text-muted font-mono truncate mt-0.5 cursor-pointer hover:text-brand transition-colors"

@@ -311,52 +311,50 @@ export function UTMGenerator({
       {/* Preview */}
       <URLPreview url={fullUrl} />
 
+      {/* Nome do link */}
+      <Input
+        label="Nome do link (para o histórico)"
+        placeholder="ex: Black Friday — Meta Ads — Banner"
+        value={linkName}
+        onChange={(e) => setLinkName(e.target.value)}
+      />
+
       {/* Descrição / Contexto */}
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <label className="text-sm font-medium text-text">Descrição / Contexto (opcional)</label>
-          {suggestedDescription && description !== suggestedDescription && (
-            <button
-              type="button"
-              onClick={applySuggestion}
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-brand-dark transition-colors"
-              title="Usar sugestão automática"
-            >
-              <Sparkles className="w-3 h-3" />
-              Usar sugestão
-            </button>
-          )}
-        </div>
+        <label className="text-sm font-medium text-text">Descrição (opcional)</label>
         <textarea
           className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
-          rows={2}
-          placeholder="Ex: Link enviado no grupo de WhatsApp dos talleres para a campanha da Expo Mecânicos no México"
+          rows={3}
+          placeholder="Ex: Link enviado no grupo de WhatsApp para a campanha de lançamento do ebook"
           value={description}
           onChange={(e) => {
             setDescription(e.target.value);
             setDescriptionTouched(true);
           }}
         />
-        {suggestedDescription && !descriptionTouched && (
-          <p className="text-xs text-muted">
-            <Sparkles className="inline w-3 h-3 text-brand" /> Sugestão automática — você pode editar.
-          </p>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={applySuggestion}
+            disabled={!suggestedDescription}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:text-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title={suggestedDescription ? "Gerar descrição automática a partir dos parâmetros" : "Preencha source, medium e campaign para gerar"}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Gerar descrição automática
+          </button>
+          {suggestedDescription && !descriptionTouched && (
+            <span className="text-xs text-muted">
+              Sugestão automática — você pode editar.
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Salvar */}
+      {/* Cliente / Pasta / Salvar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-        <div className="flex-1">
-          <Input
-            label="Nome do link (para o histórico)"
-            placeholder="ex: Black Friday — Meta Ads — Banner"
-            value={linkName}
-            onChange={(e) => setLinkName(e.target.value)}
-          />
-        </div>
-
         {isLoggedIn && clients.length > 0 && (
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:flex-1">
             <Select
               label="Cliente"
               options={clients.map((c) => ({ value: c.id, label: c.name }))}
@@ -368,7 +366,7 @@ export function UTMGenerator({
         )}
 
         {isLoggedIn && folders.length > 0 && (
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:flex-1">
             <Select
               label="Pasta"
               options={folders.map((f) => ({ value: f.id, label: f.name }))}

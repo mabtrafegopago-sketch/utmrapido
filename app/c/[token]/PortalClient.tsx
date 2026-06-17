@@ -80,7 +80,7 @@ function LinkCard({
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-text leading-tight">{link.name}</p>
             {link.description && (
-              <p className="text-xs text-muted mt-1 leading-relaxed">{link.description}</p>
+              <p className="text-xs italic text-muted mt-1 leading-relaxed">{link.description}</p>
             )}
           </div>
         </div>
